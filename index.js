@@ -10,8 +10,9 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", 
-      "https://mindmate-chi.vercel.app"],
+      "http://localhost:5173",
+      "https://mindmate-chi.vercel.app"
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -36,38 +37,41 @@ async function run() {
 
     const usersCollection = client.db("mindmateDB").collection("usersCollections");
 
-    //  Add a new user
+    // ===== Add a new user =====
     app.post('/users', async (req, res) => {
       const newUser = req.body;
-      console.log(" Received new user:", newUser);
+      console.log("Received new user:", newUser);
 
-      if (!newUser?.email || !newUser?.uid) {
+      //  uid check removed, only email required
+      if (!newUser?.email) {
         return res.status(400).send({ message: "Invalid user data" });
       }
 
+      // Check if user already exists
       const existingUser = await usersCollection.findOne({ email: newUser.email });
       if (existingUser) {
         return res.send({ message: "User already exists" });
       }
 
+      // Insert new user
       const result = await usersCollection.insertOne(newUser);
       res.send(result);
     });
 
-    //  Get all users
+    // ===== Get all users =====
     app.get('/users', async (req, res) => {
       const users = await usersCollection.find().toArray();
       res.send(users);
     });
 
-    //  Delete user by ID
+    // ===== Delete user by ID =====
     app.delete('/users/:id', async (req, res) => {
       const id = req.params.id;
       const result = await usersCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
-    //  Confirm connection
+    // Confirm connection
     await client.db("admin").command({ ping: 1 });
     console.log(" Successfully connected to MongoDB!");
   } catch (error) {
@@ -78,12 +82,12 @@ run().catch(console.dir);
 
 // ===== Default Route =====
 app.get('/', (req, res) => {
-  res.send(' MindMate Server is Running Successfully!');
+  res.send('MindMate Server is Running Successfully!');
 });
 
-// // ===== Start Server =====
-// app.listen(port, () => {
-//   console.log(` Server is running on port ${port}`);
-// });
+// ===== Start Server for local testing =====
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
 module.exports = app;
