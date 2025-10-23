@@ -7,7 +7,15 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // ===== Middleware =====
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", 
+      "https://mindmate-chi.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // ===== MongoDB Connection URI =====
@@ -73,7 +81,9 @@ app.get('/', (req, res) => {
   res.send(' MindMate Server is Running Successfully!');
 });
 
-// ===== Start Server =====
-app.listen(port, () => {
-  console.log(` Server is running on port ${port}`);
-});
+// // ===== Start Server =====
+// app.listen(port, () => {
+//   console.log(` Server is running on port ${port}`);
+// });
+
+module.exports = app;
