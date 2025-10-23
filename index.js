@@ -7,20 +7,11 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // ===== Middleware =====
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://mindmate-chi.vercel.app"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(express.json());
 
 // ===== MongoDB Connection URI =====
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.f4ofb.mongodb.net/mindmateDB?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.f4ofb.mongodb.net/mindmateDB?retryWrites=true&w=majority`;
 
 // ===== MongoClient Configuration =====
 const client = new MongoClient(uri, {
@@ -42,18 +33,15 @@ async function run() {
       const newUser = req.body;
       console.log("Received new user:", newUser);
 
-      //  uid check removed, only email required
       if (!newUser?.email) {
         return res.status(400).send({ message: "Invalid user data" });
       }
 
-      // Check if user already exists
       const existingUser = await usersCollection.findOne({ email: newUser.email });
       if (existingUser) {
         return res.send({ message: "User already exists" });
       }
 
-      // Insert new user
       const result = await usersCollection.insertOne(newUser);
       res.send(result);
     });
@@ -71,23 +59,19 @@ async function run() {
       res.send(result);
     });
 
-    // Confirm connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(" Successfully connected to MongoDB!");
+    console.log("✅ Successfully connected to MongoDB!");
   } catch (error) {
-    console.error(" MongoDB connection error:", error);
+    console.error("❌ MongoDB connection error:", error);
   }
 }
 run().catch(console.dir);
 
 // ===== Default Route =====
 app.get('/', (req, res) => {
-  res.send('MindMate Server is Running Successfully!');
+  res.send('MindMate Server is Running Successfully on localhost!');
 });
 
-// ===== Start Server for local testing =====
+// ===== Start Server =====
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
-
-module.exports = app;
